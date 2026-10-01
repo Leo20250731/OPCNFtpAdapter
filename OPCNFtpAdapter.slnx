@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="OPCNFtpAdapter/OPCNFtpAdapter.csproj" Id="1e4e3486-0718-4370-ac84-6e01f374e4dc" />
+  <Project Path="OPCNFtpAdapterConfiguration/OPCNFtpAdapterConfiguration.csproj" Id="faef16b6-e910-41a9-af5b-f16e29ee387e" />
+</Solution>
