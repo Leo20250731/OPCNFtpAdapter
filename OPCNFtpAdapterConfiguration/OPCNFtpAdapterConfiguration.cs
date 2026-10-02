@@ -33,6 +33,18 @@ namespace Siemens.MOM.Interoperability.Adapter
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate, Order = 130)]
         public string FtpOutboundUri { get; set; }
 
+        /// <summary>
+        /// Use FTP Passive mode
+        /// </summary>
+        [ConfigurationProperty("Use Passive Mode", Description = "Enable FTP passive mode for firewall traversal")]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate, Order = 140)]
+        public bool FtpUsePassiveMode { get; set; }
 
+        /// <summary>
+        /// FTP connection timeout (seconds)
+        /// </summary>
+        [ConfigurationProperty("FTP Timeout(sec)", Description = "FTP connect timeout in seconds")]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate, Order = 150)]
+        public int FtpTimeout { get; set; }
     }
 }

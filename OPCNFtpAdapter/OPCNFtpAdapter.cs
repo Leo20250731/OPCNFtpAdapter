@@ -36,6 +36,9 @@ namespace Siemens.MOM.Interoperability
         private string _ftpInboundUri;
         private string _ftpOutboundUri;
 
+        private bool _ftpUsePassiveMode;
+        private int _ftpTimeout;
+
         private const int BufferSize = 2048;
         private readonly TimeSpan _timeSpanInfinite = new TimeSpan(0, 0, 0, 0, -1);
 
@@ -91,22 +94,34 @@ namespace Siemens.MOM.Interoperability
 
             if (!DiagnosticsMode)
             {
-                // 把FTP所有配置放在Description字段，JSON格式
-                string jsonConfig = adapterConfiguration.Description;
-                if (string.IsNullOrWhiteSpace(jsonConfig))
+                // 框架已经完成反序列化，直接强转为你的自定义配置类
+                var ftpCfg = adapterConfiguration as FTPAdapterConfiguration;
+                if (ftpCfg == null)
                 {
-                    throw new ArgumentException($"Adapter [{Name}] Description(JSON config) is empty");
+                    throw new InvalidCastException($"[{Name}] Failed to cast configuration to FTPAdapterConfiguration");
                 }
-                var ftpCfg = JsonConvert.DeserializeObject<FTPAdapterConfiguration>(jsonConfig);
+
+                // 参数校验
+                if (string.IsNullOrWhiteSpace(ftpCfg.FtpInboundUri) && string.IsNullOrWhiteSpace(ftpCfg.FtpOutboundUri))
+                {
+                    throw new ArgumentException($"Adapter [{Name}]: Both FtpInboundUri and FtpOutboundUri cannot be empty.");
+                }
 
                 _ftpInboundUri = ftpCfg.FtpInboundUri;
                 _ftpOutboundUri = ftpCfg.FtpOutboundUri;
+
+                //轮询间隔，做下限保护，最小1秒
                 _ftpInterval = ftpCfg.FtpInterval > 0
-                    ? new TimeSpan(0, 0, 0, (int)ftpCfg.FtpInterval)
+                    ? TimeSpan.FromSeconds(ftpCfg.FtpInterval)
                     : _timeSpanInfinite;
+
+                _ftpUsePassiveMode = ftpCfg.FtpUsePassiveMode;
+                _ftpTimeout = ftpCfg.FtpTimeout > 0 ? ftpCfg.FtpTimeout : 30;
             }
+
             return string.Empty;
         }
+
 
         /// <summary>
         /// start the timer that periodically invokes the ManageFTPConnection method
@@ -272,10 +287,11 @@ namespace Siemens.MOM.Interoperability
             // Get the object used to communicate with the server.
             var ftpRequest = (FtpWebRequest)WebRequest.Create(_ftpInboundUri);
             ftpRequest.UseBinary = true;
-            ftpRequest.UsePassive = true;
+            ftpRequest.UsePassive = _ftpUsePassiveMode;
             ftpRequest.KeepAlive = true;
             ftpRequest.Method = WebRequestMethods.Ftp.ListDirectory;
             ftpRequest.Credentials = new NetworkCredential(UserName, Password);
+            ftpRequest.Timeout = _ftpTimeout * 1000;
 
 
             FtpWebResponse ftpResponse = null;
@@ -372,8 +388,9 @@ namespace Siemens.MOM.Interoperability
             var ftpRequest = (FtpWebRequest)WebRequest.Create(_ftpInboundUri + "/" + remoteFile);
             ftpRequest.Credentials = new NetworkCredential(UserName, Password);
             ftpRequest.UseBinary = true;
-            ftpRequest.UsePassive = true;
+            ftpRequest.UsePassive = _ftpUsePassiveMode;
             ftpRequest.KeepAlive = true;
+            ftpRequest.Timeout = _ftpTimeout * 1000;
 
             ftpRequest.Method = WebRequestMethods.Ftp.DownloadFile;
             FtpWebResponse ftpResponse = null;
@@ -418,9 +435,10 @@ namespace Siemens.MOM.Interoperability
             var ftpRequest = (FtpWebRequest)WebRequest.Create(_ftpInboundUri + "/" + deleteFile);
             ftpRequest.Credentials = new NetworkCredential(UserName, Password);
             ftpRequest.UseBinary = true;
-            ftpRequest.UsePassive = true;
+            ftpRequest.UsePassive = _ftpUsePassiveMode;
             ftpRequest.KeepAlive = true;
             ftpRequest.Method = WebRequestMethods.Ftp.DeleteFile;
+            ftpRequest.Timeout = _ftpTimeout * 1000;
 
             try
             {

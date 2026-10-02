@@ -45,8 +45,9 @@ namespace Siemens.MOM.Interoperability
             var ftpRequest = (FtpWebRequest)WebRequest.Create(_ftpOutboundUri + "/" + sentMessage.Name);
             ftpRequest.Credentials = new NetworkCredential(UserName, Password);
             ftpRequest.UseBinary = true;
-            ftpRequest.UsePassive = true;
+            ftpRequest.UsePassive = _ftpUsePassiveMode;
             ftpRequest.KeepAlive = true;
+            ftpRequest.Timeout = _ftpTimeout * 1000;
 
             ftpRequest.Method = WebRequestMethods.Ftp.UploadFile;
 

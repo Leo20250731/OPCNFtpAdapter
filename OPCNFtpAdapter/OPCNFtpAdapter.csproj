@@ -53,7 +53,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files\Siemens\Opcenter Connect MOM\Channel Adapter Host\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="OPCNFtpAdapterConfiguration">
+    <Reference Include="OPCNFtpAdapterConfiguration, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\OPCNFtpAdapterConfiguration\bin\Debug\OPCNFtpAdapterConfiguration.dll</HintPath>
     </Reference>
     <Reference Include="PlugIns">
